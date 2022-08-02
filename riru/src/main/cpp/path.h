@@ -2,7 +2,7 @@
 
 #include <functional>
 
-namespace magisk {
+namespace path {
 
     const char* GetPath();
 

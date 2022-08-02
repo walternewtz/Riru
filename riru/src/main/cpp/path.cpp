@@ -13,7 +13,7 @@
 
 using namespace std::string_literals;
 
-namespace magisk {
+namespace path {
 
     static std::string path;
 
@@ -26,14 +26,14 @@ namespace magisk {
     }
 
     std::string GetPathForSelf(const char *name) {
-        return GetPath() + "/.magisk/modules/riru-core/"s + name;
+        return GetPath() + "/riru-core/"s + name;
     }
 
     std::string GetPathForSelfLib(const char *name) {
 #ifdef __LP64__
-        return GetPath() + "/.magisk/modules/riru-core/lib64/"s + name;
+        return GetPath() + "/riru-core/lib64/"s + name;
 #else
-        return GetPath() + "/.magisk/modules/riru-core/lib/"s + name;
+        return GetPath() + "/riru-core/lib/"s + name;
 #endif
     }
-}  // namespace magisk
+}  // namespace path

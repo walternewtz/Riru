@@ -19,7 +19,7 @@ public:
         // used by riru itself only, could be removed in the future
         WRITE_STATUS = 2,
         READ_NATIVE_BRIDGE = 3,
-        READ_MAGISK_TMPFS_PATH = 6,
+        READ_RIRU_TMPFS_PATH = 6,
 
         READ_MODULES = 7,
     };
@@ -77,7 +77,7 @@ public:
 
     std::string ReadFile(std::string_view path);
 
-    std::string ReadMagiskTmpfsPath() const;
+    std::string ReadRiruTmpfsPath() const;
 
     std::string ReadNativeBridge() const;
 

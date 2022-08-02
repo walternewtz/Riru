@@ -3,7 +3,7 @@
 #include <dl.h>
 #include <link.h>
 #include <string>
-#include <magisk.h>
+#include <path.h>
 #include <android_prop.h>
 #include "hide_utils.h"
 #include "logging.h"
@@ -197,7 +197,7 @@ namespace hide {
     }  // namespace
 
     void HideFromMaps() {
-        auto self_path = magisk::GetPathForSelfLib("libriru.so");
+        auto self_path = path::GetPathForSelfLib("libriru.so");
         std::set<std::string_view> names{self_path};
         for (const auto &module : modules::Get()) {
             if (module.supportHide) {
@@ -218,7 +218,7 @@ namespace hide {
     }
 
     void HideFromSoList() {
-        auto self_path = magisk::GetPathForSelfLib("libriru.so");
+        auto self_path = path::GetPathForSelfLib("libriru.so");
         std::set<std::string_view> names_to_remove{};
         if (Entry::IsSelfUnloadAllowed()) {
             LOGD("don't hide self since it will be unloaded");
@@ -247,7 +247,7 @@ namespace hide {
     }
 
     void PrepareMapsHideLibrary() {
-        auto hide_lib_path = magisk::GetPathForSelfLib("libriruhide.so");
+        auto hide_lib_path = path::GetPathForSelfLib("libriruhide.so");
 
         // load riruhide.so and run the hide
         LOGD("dlopen libriruhide");

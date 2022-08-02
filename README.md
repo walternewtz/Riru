@@ -1,91 +1,69 @@
 # MagiskLess-Riru
 
-Status: WIP, do not use (yet)!
-
 Fork of the (now deprecated) [Riru](https://github.com/RikkaApps/Riru) Magisk module.
 
-This fork is (or rather *will be*) a version of Riru that does not require Magisk to be installed on the device.
-
-# Riru
-
-Riru only does one thing, inject into zygote in order to allow modules to run their codes in apps or the system server.
-
-> The name, Riru, comes from a character. (https://www.pixiv.net/member_illust.php?mode=medium&illust_id=74128856)
+This fork is a version of Riru that does not require Magisk to be installed on the device.
 
 ## Requirements
 
-Android 6.0+ devices rooted with [Magisk](https://github.com/topjohnwu/Magisk)
+* Android 6.0+ devices
+
+And f you want to use the provided template to install MagiskLess-Riru on the device
+* Permissive 'su' SELinux context (should be present on userdebug builds such as on LineageOS)
+* No dm-verity
 
 ## Guide
 
 ### Install
 
-* From Magisk Manager
+* Using gradle
 
-  1. Search "Riru" in Magisk Manager
-  2. Install the module named "Riru"
-
-  > The Magisk version requirement is enforced by Magisk Manager. You can check [Magisk's module installer script](https://github.com/topjohnwu/Magisk/blob/master/scripts/module_installer.sh).
+  1. Enter recovery mode on your device, and select "Apply update from ADB"
+  2. Run the command following:
+  ```
+  gradle riru:flashRelease
+  ```
 
 * Manually
 
-  1. Download the zip from the [GitHub release](https://github.com/RikkaApps/Riru/releases)
-  2. Install in Magisk Manager (Modules - Install from storage - Select downloaded zip)
+  1. Place the files in rw a directory of your choice on the device in the following structure:
+  ```
+  <riru-directory>
+  └── riru-core
+      ├── system
+      │   ├── lib
+      │   │   └── libriruloader.so
+      │   └── lib64
+      │       └── libriruloader.so
+      │
+      ├── lib
+      │   ├── libriru.so
+      │   └── libriruhide.so
+      │
+      ├── lib64
+      │   ├── libriru.so
+      │   └── libriruhide.so
+      │
+      ├── rirud.apk
+      └── status
+  ```
+  2. Place the `libriruloader.so` 64 bits and 32 bits versions in the `/system/lib64` and `/system/lib` folders respectively
+  3. Set the property `ro.dalvik.vm.native.bridge` to `libriruloader.so` before zygote is launched
+  4. Run the following command on startup of the device (replace `<riru-directory>` with your chosen installation directory)
+  ```
+  /system/bin/app_process -Djava.class.path=<riru-directory>/riru-core/rirud.apk /system/bin --nice-name=rirud riru.Daemon <riru-directory> 0
+  ```
 
-### Common problems
 
-* Third-party ROMs have incorrect SELinux rule
-
-  <https://github.com/RikkaApps/Riru/wiki/Explanation-about-incorrect-SELinux-rules-from-third-party-ROMs-cause-Riru-not-working>
-
-* Have low quality module that changes `ro.dalvik.vm.native.bridge` installed
-
-  **If you are using other modules that change `ro.dalvik.vm.native.bridge`, Riru will not work.** (Riru will automatically set it back)
-
-  A typical example is, some "optimize" modules change this property. Since changing this property is meaningless for "optimization", their quality is very questionable. In fact, changing properties for optimization is a joke.
-
-## How Riru works?
-
-* How to inject into the zygote process?
-
-  Before v22.0, we use the method of replacing a system library (libmemtrack) that will be loaded by zygote. However, it seems to cause some weird problems. Maybe because libmemtrack is used by something else.
-
-  Then we found a super easy way, the "native bridge" (`ro.dalvik.vm.native.bridge`). The specific "so" file will be automatically "dlopen-ed" and "dlclose-ed" by the system. This way is from [here](https://github.com/canyie/NbInjection).
-
-* How to know if we are in an app process or a system server process?
-
-  Some JNI functions (`com.android.internal.os.Zygote#nativeForkAndSpecialize` & `com.android.internal.os.Zygote#nativeForkSystemServer`) is to fork the app process or the system server process.
-  So we need to replace these functions with ours. This part is simple, hook `jniRegisterNativeMethods` since all Java native methods in `libandroid_runtime.so` is registered through this function.
-  Then we can call the original `jniRegisterNativeMethods` again to replace them.
-  
-## How does Hide works?
-
-From v22.0, Riru provides a hidden mechanism (idea from [Haruue Icymoon](https://github.com/haruue)), make the memory of Riru and module to anonymous memory to hide from "`/proc/maps` string scanning".
 
 ## Build
 
 Gradle tasks:
 
 * `:riru:assembleDebug/Release`
-   
-   Generate Magisk module zip to `out`.
 
-* `:riru:pushDebug/Release`
-   
-   Push the zip with adb to `/data/local/tmp`.
+  Generate update package zip to `out`.
 
 * `:riru:flashDebug/Release`
-   
-   Flash the zip with `adb shell su -c magisk --install-module`.
 
-* `:riru:flashAndRebootDebug/Release`
-
-   Flash the zip and reboot the device.
-
-## Module template
-
-https://github.com/RikkaApps/Riru-ModuleTemplate
-
-## Module API changes
-
-https://github.com/RikkaApps/Riru-ModuleTemplate/blob/master/README.md#api-changes
+  Build an update package (using the [android-flashable-zip](https://github.com/Alhyoss/android-flashable-zip) template) and sideload it to the device.

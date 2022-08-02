@@ -72,7 +72,7 @@ typedef struct {
 typedef struct {
     int riruApiVersion;
     void *unused;
-    const char *magiskModulePath;
+    const char *riruModulePath;
     int *allowUnload;
 } Riru;
 
@@ -91,7 +91,7 @@ typedef RiruVersionedModuleInfo *(RiruInit_t)(Riru *);
 RIRU_EXPORT RiruVersionedModuleInfo *init(Riru *riru) ;
 
 extern int riru_api_version;
-extern const char *riru_magisk_module_path;
+extern const char *riru_module_path;
 extern int *riru_allow_unload;
 
 #if !__cplusplus && __STDC_VERSION__ < 199409L
@@ -102,9 +102,9 @@ extern int *riru_allow_unload;
 #define RIRU_INLINE inline
 #endif
 
-RIRU_INLINE const char *riru_get_magisk_module_path() {
+RIRU_INLINE const char *riru_get_module_path() {
     if (riru_api_version >= 24) {
-        return riru_magisk_module_path;
+        return riru_module_path;
     }
     return NULL;
 }

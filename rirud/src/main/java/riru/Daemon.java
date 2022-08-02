@@ -105,7 +105,7 @@ public class Daemon implements IBinder.DeathRecipient {
 
         DaemonUtils.writeStatus(R.string.not_loaded);
         if (isFirst) {
-            Log.w(TAG, "Magisk post-fs-data slow?");
+            Log.w(TAG, "post-fs-data slow?");
         }
     }
 
@@ -160,11 +160,9 @@ public class Daemon implements IBinder.DeathRecipient {
     public static void main(String[] args) {
         DaemonUtils.init(args);
         DaemonUtils.writeStatus(R.string.app_process);
-        int magiskVersionCode = DaemonUtils.getMagiskVersionCode();
-        String magiskTmpfsPath = DaemonUtils.getMagiskTmpfsPath();
+        String riruTmpfsPath = DaemonUtils.getRiruTmpfsPath();
 
-        Log.i(TAG, "Magisk version is " + magiskVersionCode);
-        Log.i(TAG, "Magisk tmpfs path is " + magiskTmpfsPath);
+        Log.i(TAG, "Riru path is " + riruTmpfsPath);
         Log.i(TAG, "Original native bridge is " + DaemonUtils.getOriginalNativeBridge());
         Log.i(TAG, "Dev random is " + DaemonUtils.getDevRandom());
 

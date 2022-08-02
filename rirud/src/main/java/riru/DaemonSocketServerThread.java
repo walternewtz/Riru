@@ -47,10 +47,10 @@ public class DaemonSocketServerThread extends Thread {
     // used by riru itself only, could be removed in the future
     private static final int ACTION_WRITE_STATUS = 2;
     private static final int ACTION_READ_NATIVE_BRIDGE = 3;
-    private static final int ACTION_READ_MAGISK_TMPFS_PATH = 6;
+    private static final int ACTION_READ_RIRU_TMPFS_PATH = 6;
     private static final int ACTION_READ_MODULES = 7;
 
-    private static final HashSet<Integer> privateActions = new HashSet<>(Arrays.asList(ACTION_WRITE_STATUS, ACTION_READ_NATIVE_BRIDGE, ACTION_READ_MAGISK_TMPFS_PATH, ACTION_READ_MODULES));
+    private static final HashSet<Integer> privateActions = new HashSet<>(Arrays.asList(ACTION_WRITE_STATUS, ACTION_READ_NATIVE_BRIDGE, ACTION_READ_RIRU_TMPFS_PATH, ACTION_READ_MODULES));
 
     private static final Executor EXECUTOR = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() / 4 + 1);
 
@@ -65,8 +65,8 @@ public class DaemonSocketServerThread extends Thread {
         out.write(s.getBytes());
     }
 
-    private void handleMagiskTmpfsPath(LittleEndianDataOutputStream out) throws IOException {
-        String s = DaemonUtils.getMagiskTmpfsPath();
+    private void handleRiruTmpfsPath(LittleEndianDataOutputStream out) throws IOException {
+        String s = DaemonUtils.getRiruTmpfsPath();
         out.writeInt(s.length());
         out.write(s.getBytes());
     }
@@ -251,10 +251,10 @@ public class DaemonSocketServerThread extends Thread {
         out.writeInt(modules.size());
 
         for (Map.Entry<String, List<Pair<String, String>>> entry : modules.entrySet()) {
-            String magiskModulePath = entry.getKey();
+            String riruModulePath = entry.getKey();
             List<Pair<String, String>> libs = entry.getValue();
 
-            writeString(out, magiskModulePath);
+            writeString(out, riruModulePath);
             out.writeInt(libs.size());
 
             for (Pair<String, String> pair : libs) {
@@ -276,9 +276,9 @@ public class DaemonSocketServerThread extends Thread {
                 handleReadOriginalNativeBridge(out);
                 break;
             }
-            case ACTION_READ_MAGISK_TMPFS_PATH: {
-                Log.i(TAG, "Action: read Magisk tmpfs path");
-                handleMagiskTmpfsPath(out);
+            case ACTION_READ_RIRU_TMPFS_PATH: {
+                Log.i(TAG, "Action: read Riru tmpfs path");
+                handleRiruTmpfsPath(out);
                 break;
             }
             case ACTION_WRITE_STATUS: {

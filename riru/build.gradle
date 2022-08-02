@@ -7,6 +7,8 @@ plugins {
     id 'com.android.application'
 }
 
+def riruPath  = "/riru"
+
 def versionNameShort = "v${riruApiVersion}.${versionNameMinor}.${versionNamePatch}"
 def versionName = "${versionNameShort}.r${gitCommitCount}.${gitCommitId}"
 def versionCode = gitCommitCount
@@ -87,57 +89,46 @@ afterEvaluate {
         def variantLowered = variant.name.toLowerCase()
 
         def zipName = "riru-${versionName}-${variantLowered}.zip"
-        def magiskDir = file("$outDir/magisk_module_$variantLowered")
+        def flashDir = file("$outDir/riru-${versionName}-${variantLowered}")
 
-        task("prepareMagiskFiles${variantCapped}", type: Sync) {
+        task("prepareUpdateFiles${variantCapped}", type: Sync) {
             dependsOn(":rirud:assemble$variantCapped")
             dependsOn("assemble$variantCapped")
 
-            def templatePath = "$rootDir/template/magisk_module"
+            def templatePath = "$rootDir/template/update_package"
 
-            into magiskDir
+            into flashDir
             from(templatePath) {
-                exclude 'customize.sh', 'util_functions.sh', 'module.prop'
+                exclude 'update.sh', 'files/rirud_launcher.rc'
             }
             from(templatePath) {
-                include 'customize.sh', 'util_functions.sh'
+                include 'update.sh'
                 filter(ReplaceTokens.class, tokens: [
-                        "RIRU_API"         : apiVersion.toString(),
-                        "RIRU_VERSION_CODE": versionCode.toString(),
-                        "RIRU_VERSION_NAME": versionName.toString()
+                        "RIRU_PATH"         : riruPath.toString()
                 ])
                 filter(FixCrLfFilter.class,
                         eol: FixCrLfFilter.CrLf.newInstance("lf"))
             }
             from(templatePath) {
-                include 'module.prop'
-                expand moduleProps
+                include 'files/rirud_launcher.rc'
+                filter(ReplaceTokens.class, tokens: [
+                        "RIRU_PATH"         : riruPath.toString()
+                ])
                 filter(FixCrLfFilter.class,
                         eol: FixCrLfFilter.CrLf.newInstance("lf"))
             }
             from("$buildDir/intermediates/stripped_native_libs/$variantLowered/out/lib") {
-                into 'lib'
+                into 'files/lib'
             }
-            from(project(":rirud").buildDir.absolutePath + "/outputs/apk/$variantLowered/rirud.apk") {
+            from(project(":rirud").buildDir.absolutePath + "/intermediates/apk/$variantLowered/rirud.apk") {
                 include 'rirud.apk'
-            }
-            doLast {
-                fileTree("$magiskDir").visit { f ->
-                    if (f.directory) return
-                    if (f.file.name == '.gitattributes') return
-
-                    def md = MessageDigest.getInstance("SHA-256")
-                    f.file.eachByte 4096, { bytes, size ->
-                        md.update(bytes, 0, size)
-                    }
-                    file(f.file.path + ".sha256sum").text = md.digest().encodeHex()
-                }
+                into 'files/'
             }
         }
 
         task("zip${variantCapped}", type: Zip) {
-            dependsOn("prepareMagiskFiles${variantCapped}")
-            from magiskDir
+            dependsOn("prepareUpdateFiles${variantCapped}")
+            from flashDir
             archiveName zipName
             destinationDir outDir
         }
@@ -149,13 +140,8 @@ afterEvaluate {
         }
 
         task("flash${variantCapped}", type: Exec) {
-            dependsOn("push${variantCapped}")
-            commandLine android.adbExecutable, "shell", "su", "-c", "magisk --install-module /data/local/tmp/${zipName}"
-        }
-
-        task("flashAndReboot${variantCapped}", type: Exec) {
-            dependsOn("flash${variantCapped}")
-            commandLine android.adbExecutable, "shell", "reboot"
+            dependsOn("zip${variantCapped}")
+            commandLine android.adbExecutable, "sideload", "${outDir}/${zipName}"
         }
 
         variant.assembleProvider.get().finalizedBy("zip${variantCapped}")

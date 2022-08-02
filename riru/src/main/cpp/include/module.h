@@ -13,7 +13,7 @@ struct RiruModule : public RiruModuleInfo {
 public:
     std::string id;
     std::string path;
-    std::string magisk_module_path;
+    std::string riru_module_path;
     int apiVersion;
 
 
@@ -25,12 +25,12 @@ public:
     RiruModule(RiruModule &&other) = default;
 
     explicit RiruModule(std::string_view id, std::string_view path,
-                        std::string_view magisk_module_path,
+                        std::string_view riru_module_path,
                         int apiVersion, const RiruModuleInfo &info, void *handle = nullptr,
                         std::unique_ptr<int> allowUnload = nullptr) : RiruModuleInfo(info),
                                                                       id(id), path(path),
-                                                                      magisk_module_path(
-                                                                              magisk_module_path),
+                                                                      riru_module_path(
+                                                                              riru_module_path),
                                                                       apiVersion(apiVersion),
                                                                       handle_(handle), _allowUnload(
                     std::move(allowUnload)) {

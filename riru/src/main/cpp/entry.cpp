@@ -6,7 +6,7 @@
 #include "logging.h"
 #include "module.h"
 #include "hide_utils.h"
-#include "magisk.h"
+#include "path.h"
 #include "entry.h"
 
 static void *self_handle;
@@ -106,10 +106,10 @@ void Entry::Unload(jboolean is_child_zygote) {
 
 extern "C" [[gnu::visibility("default")]] [[maybe_unused]] void
 // NOLINTNEXTLINE
-init(void *handle, const char* magisk_path, const RirudSocket& rirud) {
+init(void *handle, const char* riru_path, const RirudSocket& rirud) {
     self_handle = handle;
 
-    magisk::SetPath(magisk_path);
+    path::SetPath(riru_path);
     hide::PrepareMapsHideLibrary();
     jni::InstallHooks();
     modules::Load(rirud);

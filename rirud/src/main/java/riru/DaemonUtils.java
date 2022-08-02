@@ -46,8 +46,7 @@ public class DaemonUtils {
     private static Boolean has32Bit = null, has64Bit = null;
     private static String originalNativeBridge;
     private static String devRandom;
-    private static int magiskVersionCode = -1;
-    private static String magiskTmpfsPath;
+    private static String riruTmpfsPath;
 
     public static Resources res;
 
@@ -69,10 +68,9 @@ public class DaemonUtils {
     private static final Set<Integer> zygotePid = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     public static void init(String[] args) {
-        magiskVersionCode = Integer.parseInt(args[0]);
-        magiskTmpfsPath = args[1];
-        if (args.length > 2) {
-            originalNativeBridge = args[2];
+        riruTmpfsPath = args[0];
+        if (args.length > 1) {
+            originalNativeBridge = args[1];
         } else {
             originalNativeBridge = "0";
         }
@@ -87,7 +85,7 @@ public class DaemonUtils {
             Method addAssetPath = AssetManager.class.getDeclaredMethod("addAssetPath", String.class);
             addAssetPath.setAccessible(true);
             // TODO: may use classpath
-            addAssetPath.invoke(am, new File("rirud.apk").getAbsolutePath());
+            addAssetPath.invoke(am, new File(DaemonUtils.getRiruTmpfsPath(),"riru-core/rirud.apk").getAbsolutePath());
             res = new Resources(am, null, null);
         } catch (Throwable e) {
             Log.e(TAG, "load res", e);
@@ -103,20 +101,20 @@ public class DaemonUtils {
             service.submit(modules);
         }
 
-        File magiskDir = new File(DaemonUtils.getMagiskTmpfsPath(), ".magisk/modules/riru-core");
+        File riruDir = new File(DaemonUtils.getRiruTmpfsPath(), "/riru-core");
 
         if (has64Bit()) {
-            fileContext &= checkOrResetContextForChildren(new File(magiskDir, "lib64"));
-            fileContext &= checkOrResetContextForForParent(new File(magiskDir, "lib64"), magiskDir);
-            fileContext &= checkOrResetContextForChildren(new File(magiskDir, "system/lib64"));
-            fileContext &= checkOrResetContextForForParent(new File(magiskDir, "system/lib64"), magiskDir);
+            fileContext &= checkOrResetContextForChildren(new File(riruDir, "lib64"));
+            fileContext &= checkOrResetContextForForParent(new File(riruDir, "lib64"), riruDir);
+            fileContext &= checkOrResetContextForChildren(new File(riruDir, "system/lib64"));
+            fileContext &= checkOrResetContextForForParent(new File(riruDir, "system/lib64"), riruDir);
         }
 
         if (has32Bit()) {
-            fileContext &= checkOrResetContextForChildren(new File(magiskDir, "lib"));
-            fileContext &= checkOrResetContextForForParent(new File(magiskDir, "lib"), magiskDir);
-            fileContext &= checkOrResetContextForChildren(new File(magiskDir, "system/lib"));
-            fileContext &= checkOrResetContextForForParent(new File(magiskDir, "system/lib"), magiskDir);
+            fileContext &= checkOrResetContextForChildren(new File(riruDir, "lib"));
+            fileContext &= checkOrResetContextForForParent(new File(riruDir, "lib"), riruDir);
+            fileContext &= checkOrResetContextForChildren(new File(riruDir, "system/lib"));
+            fileContext &= checkOrResetContextForForParent(new File(riruDir, "system/lib"), riruDir);
         }
     }
 
@@ -216,24 +214,8 @@ public class DaemonUtils {
     }
 
     public static void writeStatus(int id, Object... args) {
-        File prop = new File("module.prop");
-        lastStatusId = id;
-        lastStatusArgs = args;
-        try (BufferedReader br = new BufferedReader(new FileReader(prop))) {
-            StringBuilder sb = new StringBuilder();
-            String line = br.readLine();
-            while (line != null) {
-                sb.append(line.replaceFirst("^description=(\\[.*]\\s*)?", "description=[ " + res.getString(id, args) + " ] "));
-                sb.append(System.lineSeparator());
-                line = br.readLine();
-            }
-            String content = sb.toString();
-            try (DataOutputStream os = new DataOutputStream(new FileOutputStream(prop, false))) {
-                os.write(content.getBytes());
-            }
-        } catch (Throwable e) {
-            Log.e(TAG, "fail to write status", e);
-        }
+        // TODO: Write status to a file in /data
+        return;
     }
 
     public static boolean has32Bit() {
@@ -332,54 +314,12 @@ public class DaemonUtils {
         }
     }
 
-
-    public static int getMagiskVersionCode() {
-        if (magiskVersionCode != -1) {
-            return magiskVersionCode;
+    public static String getRiruTmpfsPath() {
+        if (riruTmpfsPath != null) {
+            return riruTmpfsPath;
         }
-
-        try {
-            ProcessBuilder ps = new ProcessBuilder("magisk", "-V");
-            ps.redirectErrorStream(true);
-            Process pr = ps.start();
-
-            BufferedReader in = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-            String line = in.readLine();
-            Log.i(TAG, "Exec magisk -V: " + line);
-            magiskVersionCode = Integer.parseInt(line);
-            pr.waitFor();
-            in.close();
-            return magiskVersionCode;
-        } catch (Throwable e) {
-            Log.w(TAG, "Exec magisk -V", e);
-            return -1;
-        }
-    }
-
-    public static String getMagiskTmpfsPath() {
-        if (magiskTmpfsPath != null) {
-            return magiskTmpfsPath;
-        }
-
-        if (getMagiskVersionCode() < 21000) {
-            return "/sbin";
-        }
-
-        try {
-            ProcessBuilder ps = new ProcessBuilder("magisk", "--path");
-            ps.redirectErrorStream(true);
-            Process pr = ps.start();
-
-            BufferedReader in = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-            magiskTmpfsPath = in.readLine();
-            Log.i(TAG, "Exec magisk --path: " + magiskTmpfsPath);
-            pr.waitFor();
-            in.close();
-            return magiskTmpfsPath;
-        } catch (Throwable e) {
-            Log.w(TAG, "Exec magisk --path", e);
-            return "";
-        }
+        riruTmpfsPath = "/riru";
+        return riruTmpfsPath;
     }
 
     public static boolean hasSELinux() {
@@ -541,17 +481,17 @@ public class DaemonUtils {
         Map<String, List<Pair<String, String>>> m = new ConcurrentHashMap<>();
 
         String riruLibPath = "riru/" + (is64 ? "lib64" : "lib");
-        File[] magiskDirs = new File(DaemonUtils.getMagiskTmpfsPath(), ".magisk/modules").listFiles();
-        if (magiskDirs == null) {
+        File[] riruDirs = new File(DaemonUtils.getRiruTmpfsPath()).listFiles();
+        if (riruDirs == null) {
             return Collections.emptyMap();
         }
 
-        for (File magiskDir : magiskDirs) {
-            if (new File(magiskDir, "remove").exists()
-                    || new File(magiskDir, "disable").exists())
+        for (File riruDir : riruDirs) {
+            if (new File(riruDir, "remove").exists()
+                    || new File(riruDir, "disable").exists())
                 continue;
 
-            File libDir = new File(magiskDir, riruLibPath);
+            File libDir = new File(riruDir, riruLibPath);
             if (!libDir.exists())
                 continue;
 
@@ -561,9 +501,9 @@ public class DaemonUtils {
             }
 
             List<Pair<String, String>> libs = new ArrayList<>();
-            m.put(magiskDir.getAbsolutePath(), libs);
+            m.put(riruDir.getAbsolutePath(), libs);
 
-            Log.d(TAG, magiskDir.getAbsolutePath() + " is a Riru module");
+            Log.d(TAG, riruDir.getAbsolutePath() + " is a Riru module");
 
             for (File lib : libsFiles) {
                 String name = lib.getName();
@@ -571,11 +511,11 @@ public class DaemonUtils {
                 if (id.startsWith(RIRU_PREFIX)) id = id.substring(RIRU_PREFIX.length());
                 else if (id.startsWith(LIB_PREFIX)) id = id.substring(LIB_PREFIX.length());
                 if (id.endsWith(SO_SUFFIX)) id = id.substring(0, id.length() - 3);
-                id = magiskDir.getName() + "@" + id;
+                id = riruDir.getName() + "@" + id;
                 if (!name.endsWith(SO_SUFFIX)) {
                     var relativeLibPath = "system/" + (is64 ? "lib64" : "lib");
                     lib = new File(new File("/", relativeLibPath), name + SO_SUFFIX);
-                    fileContext &= checkAndResetContextForFile(new File(new File(magiskDir, relativeLibPath), name + SO_SUFFIX));
+                    fileContext &= checkAndResetContextForFile(new File(new File(riruDir, relativeLibPath), name + SO_SUFFIX));
                 } else {
                     fileContext &= checkAndResetContextForFile(lib);
                 }
@@ -585,7 +525,7 @@ public class DaemonUtils {
 
             }
 
-            fileContext &= checkOrResetContextForForParent(libDir, magiskDir);
+            fileContext &= checkOrResetContextForForParent(libDir, riruDir);
         }
         return m;
     }

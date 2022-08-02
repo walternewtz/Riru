@@ -73,7 +73,7 @@ add_library(riru SHARED
         jni_hooks.cpp
         hide_utils.cpp
         module.cpp
-        magisk.cpp
+        path.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/config.cpp)
 target_include_directories(riru PRIVATE ${CMAKE_SOURCE_DIR})
 target_link_libraries(riru log utils xhook::xhook cxx::cxx proc-maps-parser::proc-maps-parser)

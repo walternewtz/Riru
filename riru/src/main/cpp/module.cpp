@@ -10,7 +10,7 @@
 #include "logging.h"
 #include "config.h"
 #include "hide_utils.h"
-#include "magisk.h"
+#include "path.h"
 #include "dl.h"
 
 using namespace std::string_literals;
@@ -30,7 +30,7 @@ static void Cleanup(void *handle) {
     }
 }
 
-static void LoadModule(std::string_view id, std::string_view path, std::string_view magisk_module_path) {
+static void LoadModule(std::string_view id, std::string_view path, std::string_view riru_module_path) {
     if (access(path.data(), F_OK) != 0) {
         PLOGE("access %s", path.data());
         return;
@@ -53,7 +53,7 @@ static void LoadModule(std::string_view id, std::string_view path, std::string_v
     auto riru = std::make_unique<Riru>(Riru{
             .riruApiVersion = riru::apiVersion,
             .unused = nullptr,
-            .magiskModulePath = magisk_module_path.data(),
+            .riruModulePath = riru_module_path.data(),
             .allowUnload = allow_unload.get()
     });
 
@@ -73,7 +73,7 @@ static void LoadModule(std::string_view id, std::string_view path, std::string_v
 
     LOGI("module loaded: %s (api %d)", id.data(), api_version);
 
-    modules::Get().emplace_back(id, path, magisk_module_path, api_version, module_info->moduleInfo,
+    modules::Get().emplace_back(id, path, riru_module_path, api_version, module_info->moduleInfo,
                                 handle,
                                 std::move(allow_unload));
 }
@@ -104,13 +104,13 @@ void modules::Load(const RirudSocket &rirud) {
         LOGE("Faild to load modules");
         return;
     }
-    std::string magisk_module_path;
+    std::string riru_module_path;
     std::string path;
     std::string id;
     uint32_t num_libs;
     while (num_modules-- > 0) {
-        if (!rirud.Read(magisk_module_path) || !rirud.Read(num_libs)) {
-            LOGE("Faild to read module's magisk path");
+        if (!rirud.Read(riru_module_path) || !rirud.Read(num_libs)) {
+            LOGE("Faild to read module's riru path");
             return;
         }
         while (num_libs-- > 0) {
@@ -118,7 +118,7 @@ void modules::Load(const RirudSocket &rirud) {
                 LOGE("Faild to read module's lib path");
                 return;
             }
-            LoadModule(id, path, magisk_module_path);
+            LoadModule(id, path, riru_module_path);
         }
     }
 

@@ -67,15 +67,15 @@ __used __attribute__((constructor)) void Constructor() {
         return;
     }
 
-    std::string magisk_path = rirud.ReadMagiskTmpfsPath();
-    if (magisk_path.empty()) {
-        LOGE("failed to obtain magisk path");
+    std::string riru_path_s = rirud.ReadRiruTmpfsPath();
+    if (riru_path_s.empty()) {
+        LOGE("failed to obtain riru path");
         return;
     }
 
     BuffString<PATH_MAX> riru_path;
-    riru_path += magisk_path;
-    riru_path += "/.magisk/modules/riru-core/lib";
+    riru_path += riru_path_s;
+    riru_path += "/riru-core/lib";
 #ifdef __LP64__
     riru_path += "64";
 #endif
@@ -86,7 +86,7 @@ __used __attribute__((constructor)) void Constructor() {
         auto init = reinterpret_cast<void (*)(void *, const char *, const RirudSocket &)>(dlsym(
                 handle, "init"));
         if (init) {
-            init(handle, magisk_path.data(), rirud);
+            init(handle, riru_path_s.data(), rirud);
         } else {
             LOGE("dlsym init %s", dlerror());
         }
