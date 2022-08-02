@@ -1,6 +1,10 @@
-# Deprecated
+# MagiskLess-Riru
 
-All Riru users and Riru modules should migrate to Zygisk.
+Status: WIP, do not use (yet)!
+
+Fork of the (now deprecated) [Riru](https://github.com/RikkaApps/Riru) Magisk module.
+
+This fork is (or rather *will be*) a version of Riru that does not require Magisk to be installed on the device.
 
 # Riru
 
