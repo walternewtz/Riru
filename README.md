@@ -8,7 +8,7 @@ This fork is a version of Riru that does not require Magisk to be installed on t
 
 * Android 6.0+ devices
 
-And f you want to use the provided template to install MagiskLess-Riru on the device
+And if you want to use the provided template to install MagiskLess-Riru on the device
 * Permissive 'su' SELinux context (should be present on userdebug builds such as on LineageOS)
 * No dm-verity
 
@@ -26,7 +26,7 @@ And f you want to use the provided template to install MagiskLess-Riru on the de
 
 * Manually
 
-  1. Place the files in rw a directory of your choice on the device in the following structure:
+  1. Place the files in a directory of your choice on the device in the following structure:
   ```
   <riru-directory>
   └── riru-core
@@ -44,8 +44,7 @@ And f you want to use the provided template to install MagiskLess-Riru on the de
       │   ├── libriru.so
       │   └── libriruhide.so
       │
-      ├── rirud.apk
-      └── status
+      └── rirud.apk
   ```
   2. Place the `libriruloader.so` 64 bits and 32 bits versions in the `/system/lib64` and `/system/lib` folders respectively
   3. Set the property `ro.dalvik.vm.native.bridge` to `libriruloader.so` before zygote is launched
