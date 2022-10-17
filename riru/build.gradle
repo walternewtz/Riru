@@ -1,44 +1,24 @@
 import org.apache.tools.ant.filters.FixCrLfFilter
 import org.apache.tools.ant.filters.ReplaceTokens
 
-import java.security.MessageDigest
-
 plugins {
     id 'com.android.application'
 }
 
-def riruPath  = "/riru"
-
-def versionNameShort = "v${riruApiVersion}.${versionNameMinor}.${versionNamePatch}"
-def versionName = "${versionNameShort}.r${gitCommitCount}.${gitCommitId}"
-def versionCode = gitCommitCount
-
-def apiVersion = rootProject.ext.riruApiVersion
-def minApiVersion = rootProject.ext.riruMinApiVersion
-def moduleProps = [
-        id         : "riru-core",
-        name       : "Riru",
-        version    : "$versionName",
-        versionCode: "$versionCode",
-        author     : "Rikka, yujincheng08",
-        description: 'Inject into zygote and run codes from "Riru" modules in apps or the system server. Support modules which use Riru API v24+.',
-        riruApi    : "$apiVersion",
-        riruMinApi : "$minApiVersion"
-]
-
 android {
-    compileSdkVersion rootProject.ext.targetSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
+    compileSdkVersion riruTargetSdkVersion
+    buildToolsVersion riruBuildToolsVersion
+
     defaultConfig {
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
+        minSdkVersion riruMinSdkVersion
+        targetSdkVersion riruTargetSdkVersion
         ndkVersion '23.1.7779620'
         externalNativeBuild {
             cmake {
-                arguments "-DRIRU_VERSION_NAME:STRING=$versionNameShort",
-                        "-DRIRU_VERSION_CODE:STRING=$versionCode",
-                        "-DRIRU_API_VERSION=$apiVersion",
-                        "-DRIRU_MIN_API_VERSION=$minApiVersion",
+                arguments "-DRIRU_VERSION_NAME:STRING=$riruVersionNameShort",
+                        "-DRIRU_VERSION_CODE=$riruVersionCode",
+                        "-DRIRU_API_VERSION=$riruApiVersion",
+                        "-DRIRU_MIN_API_VERSION=$riruMinApiVersion",
                         "-DANDROID_STL=none"
                 cppFlags "-std=c++20"
             }
@@ -48,13 +28,6 @@ android {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
-    buildTypes {
-        release {
-            minifyEnabled true
-            shrinkResources true
-            proguardFiles 'proguard-rules.pro'
-        }
-    }
     buildFeatures {
         prefab true
     }
@@ -62,10 +35,6 @@ android {
         cmake {
             path "src/main/cpp/CMakeLists.txt"
         }
-    }
-    dependenciesInfo.includeInApk false
-    lint {
-        checkReleaseBuilds false
     }
 }
 
@@ -75,75 +44,4 @@ dependencies {
     implementation 'dev.rikka.ndk.thirdparty:proc-maps-parser:1.0.0'
     implementation 'dev.rikka.rikkax.io:little-endian-data-stream:1.0.2'
     compileOnly project(':stub')
-}
-
-android.applicationVariants.all { variant ->
-    variant.outputs.all {
-        outputFileName = "riru.apk"
-    }
-}
-
-afterEvaluate {
-    android.applicationVariants.forEach { variant ->
-        def variantCapped = variant.name.capitalize()
-        def variantLowered = variant.name.toLowerCase()
-
-        def zipName = "riru-${versionName}-${variantLowered}.zip"
-        def flashDir = file("$outDir/riru-${versionName}-${variantLowered}")
-
-        task("prepareUpdateFiles${variantCapped}", type: Sync) {
-            dependsOn(":rirud:assemble$variantCapped")
-            dependsOn("assemble$variantCapped")
-
-            def templatePath = "$rootDir/template/update_package"
-
-            into flashDir
-            from(templatePath) {
-                exclude 'update.sh', 'files/rirud_launcher.rc'
-            }
-            from(templatePath) {
-                include 'update.sh'
-                filter(ReplaceTokens.class, tokens: [
-                        "RIRU_PATH"         : riruPath.toString()
-                ])
-                filter(FixCrLfFilter.class,
-                        eol: FixCrLfFilter.CrLf.newInstance("lf"))
-            }
-            from(templatePath) {
-                include 'files/rirud_launcher.rc'
-                filter(ReplaceTokens.class, tokens: [
-                        "RIRU_PATH"         : riruPath.toString()
-                ])
-                filter(FixCrLfFilter.class,
-                        eol: FixCrLfFilter.CrLf.newInstance("lf"))
-            }
-            from("$buildDir/intermediates/stripped_native_libs/$variantLowered/out/lib") {
-                into 'files/lib'
-            }
-            from(project(":rirud").buildDir.absolutePath + "/intermediates/apk/$variantLowered/rirud.apk") {
-                include 'rirud.apk'
-                into 'files/'
-            }
-        }
-
-        task("zip${variantCapped}", type: Zip) {
-            dependsOn("prepareUpdateFiles${variantCapped}")
-            from flashDir
-            archiveName zipName
-            destinationDir outDir
-        }
-
-        task("push${variantCapped}", type: Exec) {
-            dependsOn("zip${variantCapped}")
-            workingDir outDir
-            commandLine android.adbExecutable, "push", zipName, "/data/local/tmp/"
-        }
-
-        task("flash${variantCapped}", type: Exec) {
-            dependsOn("zip${variantCapped}")
-            commandLine android.adbExecutable, "sideload", "${outDir}/${zipName}"
-        }
-
-        variant.assembleProvider.get().finalizedBy("zip${variantCapped}")
-    }
 }

@@ -21,7 +21,7 @@ And f you want to use the provided template to install MagiskLess-Riru on the de
   1. Enter recovery mode on your device, and select "Apply update from ADB"
   2. Run the command following:
   ```
-  gradle riru:flashRelease
+  gradle flashRelease
   ```
 
 * Manually
@@ -60,10 +60,10 @@ And f you want to use the provided template to install MagiskLess-Riru on the de
 
 Gradle tasks:
 
-* `:riru:assembleDebug/Release`
+* `zipDebug/Release`
 
-  Generate update package zip to `out`.
+  Build an update package (using the [android-flashable-zip](https://github.com/Alhyoss/android-flashable-zip) template).
 
-* `:riru:flashDebug/Release`
+* `flashDebug/Release`
 
   Build an update package (using the [android-flashable-zip](https://github.com/Alhyoss/android-flashable-zip) template) and sideload it to the device.
