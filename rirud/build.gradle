@@ -32,7 +32,7 @@ android {
 
 dependencies {
     implementation 'dev.rikka.rikkax.io:little-endian-data-stream:1.0.2'
-    compileOnly project(':stub')
+    compileOnly getProject("stub")
 }
 
 android.applicationVariants.all { variant ->

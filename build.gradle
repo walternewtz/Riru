@@ -33,7 +33,7 @@ ext {
     riruApiVersion = 26
     riruMinApiVersion = 24
 
-    repo = new FileRepository(rootProject.file(".git"))
+    repo = new FileRepository(file(".git"))
     gitObjectId = repo.refDatabase.exactRef("refs/remotes/origin/master").objectId
     gitCommitId = gitObjectId.abbreviate(10).name()
     gitCommitCount = StreamSupport.stream(new Git(repo).log().add(gitObjectId).call().spliterator(), false).count()
@@ -45,71 +45,70 @@ ext {
     riruVersionName = "${riruVersionNameShort}.r${gitCommitCount}.${gitCommitId}"
     riruVersionCode = gitCommitCount
 
-    outDir = file("$rootDir/out")
+    outDir = file("out")
 
     riruPath  = "/riru"
 }
 
+def getProject(String name) {
+    return project(name)
+}
+
 task clean(type: Delete) {
-    delete rootProject.buildDir, outDir
+    delete buildDir, outDir
 }
 
 ["Release", "Debug"].forEach { variant ->
-    def zipName = "riru-${riruVersionName}-${variant}.zip"
     def flashDir = file("$outDir/riru-${riruVersionName}-${variant}")
 
     task("prepareUpdateFiles${variant}") {
         dependsOn("clean")
-        dependsOn(":rirud:assemble$variant")
-        dependsOn(":riru:assemble$variant")
+        dependsOn("rirud:assemble$variant")
+        dependsOn("riru:assemble$variant")
 
         doLast {
-            def templatePath = "$rootDir/template/update_package"
+            def templatePath = "template/update_package"
             copy {
                 into flashDir
                 from(templatePath) {
-                    exclude 'update.sh', 'files/rirud_launcher.rc'
+                    exclude 'zip/update.sh', 'zip/files/rirud_launcher.rc'
                 }
                 from(templatePath) {
-                    include 'update.sh', 'files/rirud_launcher.rc'
+                    include 'zip/update.sh', 'zip/files/rirud_launcher.rc'
                     filter(ReplaceTokens.class, tokens: [
                             "RIRU_PATH": riruPath.toString()
                     ])
                     filter(FixCrLfFilter.class,
                             eol: FixCrLfFilter.CrLf.newInstance("lf"))
                 }
-                from(project(":riru").buildDir.absolutePath + "/intermediates/stripped_native_libs/${variant.toLowerCase()}/out/lib") {
-                    into 'files/lib'
+                from(project("riru").buildDir.absolutePath + "/intermediates/stripped_native_libs/${variant.toLowerCase()}/out/lib") {
+                    into 'zip/files/lib'
                 }
-                from(project(":rirud").buildDir.absolutePath + "/outputs/apk/${variant.toLowerCase()}/rirud.apk") {
+                from(project("rirud").buildDir.absolutePath + "/outputs/apk/${variant.toLowerCase()}/rirud.apk") {
                     include 'rirud.apk'
-                    into 'files/'
+                    into 'zip/files/'
                 }
             }
         }
     }
 
-    task("zip${variant}", type: Zip) {
+    task("zip${variant}") {
         dependsOn("prepareUpdateFiles${variant}")
         doLast {
-            from flashDir
-            archiveName zipName
-            destinationDir outDir
-        }
-    }
-
-    task("push${variant}", type: Exec) {
-        dependsOn("zip${variant}")
-        doLast {
-            workingDir outDir
-            commandLine "adb", "push", zipName, "/data/local/tmp/"
+            exec {
+                workingDir flashDir
+                commandLine "./flashable.sh"
+            }
         }
     }
 
     task("flash${variant}", type: Exec) {
-        dependsOn("zip${variant}")
+        dependsOn("prepareUpdateFiles${variant}")
         doLast {
-            commandLine "adb", "sideload", "${outDir}/${zipName}"
+            exec {
+                workingDir flashDir
+                commandLine "./flashable.sh", "-s"
+            }
         }
     }
 }
