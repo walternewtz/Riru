@@ -33,7 +33,7 @@ ext {
     riruApiVersion = 26
     riruMinApiVersion = 24
 
-    repo = new FileRepository(file(".git"))
+    repo = new FileRepository(rootProject.file(".git"))
     gitObjectId = repo.refDatabase.exactRef("refs/remotes/origin/master").objectId
     gitCommitId = gitObjectId.abbreviate(10).name()
     gitCommitCount = StreamSupport.stream(new Git(repo).log().add(gitObjectId).call().spliterator(), false).count()
