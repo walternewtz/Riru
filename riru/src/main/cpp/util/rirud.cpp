@@ -63,7 +63,7 @@ void RirudSocket::DirIter::ContinueRead() {
     }
 }
 
-std::string RirudSocket::ReadRiruTmpfsPath() const {
+std::string RirudSocket::ReadRiruModulesPath() const {
     std::string result;
     if (Write(Action::READ_RIRU_TMPFS_PATH)) {
         Read(result);

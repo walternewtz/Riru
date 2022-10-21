@@ -72,7 +72,7 @@ typedef struct {
 typedef struct {
     int riruApiVersion;
     void *unused;
-    const char *riruModulePath;
+    const char *riruModulesPath;
     int *allowUnload;
 } Riru;
 

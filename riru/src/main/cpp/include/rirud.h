@@ -77,7 +77,7 @@ public:
 
     std::string ReadFile(std::string_view path);
 
-    std::string ReadRiruTmpfsPath() const;
+    std::string ReadRiruModulesPath() const;
 
     std::string ReadNativeBridge() const;
 

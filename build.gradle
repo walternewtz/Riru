@@ -47,7 +47,7 @@ ext {
 
     outDir = file("out")
 
-    riruPath  = "/riru"
+    riruPath  = "/data/riru"
 }
 
 def getProject(String name) {
@@ -102,7 +102,7 @@ task clean(type: Delete) {
         }
     }
 
-    task("flash${variant}", type: Exec) {
+    task("flash${variant}") {
         dependsOn("prepareUpdateFiles${variant}")
         doLast {
             exec {

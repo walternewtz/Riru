@@ -67,7 +67,7 @@ __used __attribute__((constructor)) void Constructor() {
         return;
     }
 
-    std::string riru_path_s = rirud.ReadRiruTmpfsPath();
+    std::string riru_path_s = rirud.ReadRiruModulesPath();
     if (riru_path_s.empty()) {
         LOGE("failed to obtain riru path");
         return;

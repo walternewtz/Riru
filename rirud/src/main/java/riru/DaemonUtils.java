@@ -24,11 +24,13 @@ import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,7 +48,7 @@ public class DaemonUtils {
     private static Boolean has32Bit = null, has64Bit = null;
     private static String originalNativeBridge;
     private static String devRandom;
-    private static String riruTmpfsPath;
+    private static String riruModulesPath;
 
     public static Resources res;
 
@@ -68,7 +70,7 @@ public class DaemonUtils {
     private static final Set<Integer> zygotePid = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     public static void init(String[] args) {
-        riruTmpfsPath = args[0];
+        riruModulesPath = args[0];
         if (args.length > 1) {
             originalNativeBridge = args[1];
         } else {
@@ -85,7 +87,7 @@ public class DaemonUtils {
             Method addAssetPath = AssetManager.class.getDeclaredMethod("addAssetPath", String.class);
             addAssetPath.setAccessible(true);
             // TODO: may use classpath
-            addAssetPath.invoke(am, new File(DaemonUtils.getRiruTmpfsPath(),"riru-core/rirud.apk").getAbsolutePath());
+            addAssetPath.invoke(am, new File(DaemonUtils.getRiruModulesPath(),"riru-core/rirud.apk").getAbsolutePath());
             res = new Resources(am, null, null);
         } catch (Throwable e) {
             Log.e(TAG, "load res", e);
@@ -101,7 +103,7 @@ public class DaemonUtils {
             service.submit(modules);
         }
 
-        File riruDir = new File(DaemonUtils.getRiruTmpfsPath(), "/riru-core");
+        File riruDir = new File(DaemonUtils.getRiruModulesPath(), "/riru-core");
 
         if (has64Bit()) {
             fileContext &= checkOrResetContextForChildren(new File(riruDir, "lib64"));
@@ -214,8 +216,15 @@ public class DaemonUtils {
     }
 
     public static void writeStatus(int id, Object... args) {
-        // TODO: Write status to a file in /data
-        return;
+        lastStatusId = id;
+        lastStatusArgs = args;
+
+        File statusFile = new File(riruModulesPath + "/riru-core/status");
+        try (DataOutputStream os = new DataOutputStream(new FileOutputStream(statusFile, false))) {
+            os.write(res.getString(id, args).getBytes());
+        } catch (Throwable e) {
+            Log.e(TAG, "fail to write status", e);
+        }
     }
 
     public static boolean has32Bit() {
@@ -314,12 +323,13 @@ public class DaemonUtils {
         }
     }
 
-    public static String getRiruTmpfsPath() {
-        if (riruTmpfsPath != null) {
-            return riruTmpfsPath;
+    public static String getRiruModulesPath() {
+        if (riruModulesPath != null) {
+            return riruModulesPath;
         }
-        riruTmpfsPath = "/riru";
-        return riruTmpfsPath;
+        Log.i(TAG, "Riru path was not provided, using /data/riru...");
+        riruModulesPath = "/data/riru";
+        return riruModulesPath;
     }
 
     public static boolean hasSELinux() {
@@ -481,7 +491,7 @@ public class DaemonUtils {
         Map<String, List<Pair<String, String>>> m = new ConcurrentHashMap<>();
 
         String riruLibPath = "riru/" + (is64 ? "lib64" : "lib");
-        File[] riruDirs = new File(DaemonUtils.getRiruTmpfsPath()).listFiles();
+        File[] riruDirs = new File(DaemonUtils.getRiruModulesPath()).listFiles();
         if (riruDirs == null) {
             return Collections.emptyMap();
         }

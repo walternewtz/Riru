@@ -65,8 +65,8 @@ public class DaemonSocketServerThread extends Thread {
         out.write(s.getBytes());
     }
 
-    private void handleRiruTmpfsPath(LittleEndianDataOutputStream out) throws IOException {
-        String s = DaemonUtils.getRiruTmpfsPath();
+    private void handleRiruModulesPath(LittleEndianDataOutputStream out) throws IOException {
+        String s = DaemonUtils.getRiruModulesPath();
         out.writeInt(s.length());
         out.write(s.getBytes());
     }
@@ -251,10 +251,10 @@ public class DaemonSocketServerThread extends Thread {
         out.writeInt(modules.size());
 
         for (Map.Entry<String, List<Pair<String, String>>> entry : modules.entrySet()) {
-            String riruModulePath = entry.getKey();
+            String riruModulesPath = entry.getKey();
             List<Pair<String, String>> libs = entry.getValue();
 
-            writeString(out, riruModulePath);
+            writeString(out, riruModulesPath);
             out.writeInt(libs.size());
 
             for (Pair<String, String> pair : libs) {
@@ -278,7 +278,7 @@ public class DaemonSocketServerThread extends Thread {
             }
             case ACTION_READ_RIRU_TMPFS_PATH: {
                 Log.i(TAG, "Action: read Riru tmpfs path");
-                handleRiruTmpfsPath(out);
+                handleRiruModulesPath(out);
                 break;
             }
             case ACTION_WRITE_STATUS: {
