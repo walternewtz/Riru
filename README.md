@@ -8,7 +8,7 @@ This fork is a version of Riru that does not require Magisk to be installed on t
 
 * Android 6.0+ devices
 
-And if you want to use the provided template to install MagiskLess-Riru on the device
+And if you want to use the provided template to install MagiskLess-Riru on the device:
 * Permissive 'su' SELinux context (should be present on userdebug builds such as on LineageOS)
 * No dm-verity
 
@@ -53,8 +53,6 @@ And if you want to use the provided template to install MagiskLess-Riru on the d
   /system/bin/app_process -Djava.class.path=<riru-directory>/riru-core/rirud.apk /system/bin --nice-name=rirud riru.Daemon <riru-directory> 0
   ```
 
-
-
 ## Build
 
 Gradle tasks:
@@ -66,3 +64,23 @@ Gradle tasks:
 * `flashDebug/Release`
 
   Build an update package (using the [android-flashable-zip](https://github.com/Alhyoss/android-flashable-zip) template) and sideload it to the device.
+
+## Modules
+
+Place the Riru modules in the the same directory as the `riru-core` folder (`/data/riru` by default).
+
+If the module does not use Magisk-specific features, it should work with MagiskLess-Riru.
+
+## Troubleshooting
+
+You may encounter SELinux issues on your device when installing MagiskLess-Riru or a Riru module.
+
+If you are using the provided template, you can inject the required SELinux policies by using the `inject_selinux_policy` util method in the `update.sh` file:
+```
+inject_selinux_policy -s zygote -t adb_data_file -c dir -p search
+```
+
+You can find the required SELinux policies in Logcat:
+```
+adb logcat | grep avc
+```
