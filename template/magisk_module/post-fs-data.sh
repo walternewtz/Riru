@@ -4,25 +4,24 @@ TMPPROP="$(magisk --path)/riru.prop"
 MIRRORPROP="$(magisk --path)/.magisk/modules/riru-core/module.prop"
 
 ORIG_NB="$(getprop ro.dalvik.vm.native.bridge)"
+BAK_NB="libnb_bak.so"
 
-if [ -f "/system/lib/libnb.so" ]; then
-    rm -rf "$MODDIR/system/lib/libnb.so"
-    rm -rf "$MODDIR/system.prop"
-    ln -s ./libriruloader.so "$MODDIR/system/lib/libnb.so"
-    touch "$MODDIR/system/lib/libnb.so.bak"
-    mount --bind "$(magisk --path)/.magisk/mirror/system/lib/libnb.so" "$(magisk --path)/.magisk/modules/riru-core/system/lib/libnb.so.bak"
-    resetprop -n "ro.dalvik.vm.native.bridge" "libnb.so.bak"
-    ORIG_NB="libnb.so.bak"
-fi 
-if [ -f "/system/lib64/libnb.so" ]; then
-    rm -rf "$MODDIR/system/lib64/libnb.so"
-    rm -rf "$MODDIR/system.prop"
-    ln -s ./libriruloader.so "$MODDIR/system/lib64/libnb.so"
-    touch "$MODDIR/system/lib64/libnb.so.bak"
-    mount --bind "$(magisk --path)/.magisk/mirror/system/lib64/libnb.so" "$(magisk --path)/.magisk/modules/riru-core/system/lib64/libnb.so.bak"
-    resetprop -n "ro.dalvik.vm.native.bridge" "libnb.so.bak"
-    ORIG_NB="libnb.so.bak"
-fi
+for bit in "64" ""; do
+    if [ -f "/system/lib$bit/libnb.so" ]; then
+        rm -rf "$MODDIR/system/lib$bit/libnb.so"
+        # link libriruloader to libnb
+        ln -s ./libriruloader.so "$MODDIR/system/lib$bit/libnb.so"
+
+        touch "$MODDIR/system/lib$bit/$BAK_NB"
+        if [ ! -z "$ORIG_NB" ] && [ "$ORIG_NB" != "0" ]; then
+            mount --bind "$(magisk --path)/.magisk/mirror/system/lib$bit/libnb.so" "$(magisk --path)/.magisk/modules/riru-core/system/lib$bit/$BAK_NB"
+        else
+            mount --bind "$(magisk --path)/.magisk/mirror/system/lib$bit/$ORIG_NB" "$(magisk --path)/.magisk/modules/riru-core/system/lib$bit/$BAK_NB"
+        fi
+        # tell rirud the original nb is now $BAK_NB
+        ORIG_NB="$BAK_NB"
+    fi
+done
 
 
 sh -Cc "cat '$MODDIR/module.prop' > '$TMPPROP'"
