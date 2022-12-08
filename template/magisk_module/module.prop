@@ -1,6 +1,6 @@
 id=${id}
 name=${name}
-version=${version}-mod-1
+version=${version}
 versionCode=${versionCode}
 author=${author}
 description=${description}
