@@ -62,27 +62,8 @@ jobs:
           echo 'org.gradle.vfs.watch=true' >> gradle.properties
           echo 'org.gradle.jvmargs=-Xmx2048m' >> gradle.properties
           ./gradlew zipDebug zipRelease
-      - name: Prepare artifact
-        if: success()
-        id: prepareArtifact
-        run: |
-          releaseName=`ls out/riru-*-release.zip | awk -F '(/|.zip)' '{print $2}'` && echo "::set-output name=releaseName::$releaseName"
-          debugName=`ls out/riru-*-debug.zip | awk -F '(/|.zip)' '{print $2}'` && echo "::set-output name=debugName::$debugName"
-          unzip out/riru-*-release.zip -d riru-release
-          unzip out/riru-*-debug.zip -d riru-debug
-      - name: Upload release
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{ steps.prepareArtifact.outputs.releaseName }}
-          path: './riru-release/*'
-      - name: Upload debug
-        #      if: ${{ github.event_name == 'pull_request' && success() }}
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{ steps.prepareArtifact.outputs.debugName }}
-          path: './riru-debug/*'
       - name: Upload mappings
         uses: actions/upload-artifact@v2
         with:
           name: mappings
-          path: "riru/build/outputs/mapping/release"
+          path: "/home/runner/work/Riru/Riru/out/"
