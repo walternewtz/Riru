@@ -52,9 +52,10 @@ else
 fi
 
 [ $? -ne 0 ] && error "Could not build $ZIPFILE, exiting..."
-
+echo $(pwd)
 cd $current_dir
 
+echo $(pwd)
 echo "Done."
 
 
