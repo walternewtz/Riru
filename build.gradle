@@ -1,7 +1,7 @@
 import org.apache.tools.ant.filters.FixCrLfFilter
+import org.apache.tools.ant.filters.ReplaceTokens
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.internal.storage.file.FileRepository
-
 import java.util.stream.StreamSupport
 
 buildscript {
@@ -26,9 +26,9 @@ idea.module {
 }
 
 ext {
-    minSdkVersion = 23
-    targetSdkVersion = 32
-    buildToolsVersion = "32.0.0"
+    riruMinSdkVersion = 23
+    riruTargetSdkVersion = 32
+    riruBuildToolsVersion = "32.0.0"
 
     riruApiVersion = 26
     riruMinApiVersion = 24
@@ -38,96 +38,77 @@ ext {
     gitCommitId = gitObjectId.abbreviate(10).name()
     gitCommitCount = StreamSupport.stream(new Git(repo).log().add(gitObjectId).call().spliterator(), false).count()
 
-    versionNameMinor = 1
-    versionNamePatch = 6
+    def versionNameMinor = 1
+    def versionNamePatch = 6
 
-    outDir = file("$rootDir/out")
+    riruVersionNameShort = "v${riruApiVersion}.${versionNameMinor}.${versionNamePatch}"
+    riruVersionName = "${riruVersionNameShort}.r${gitCommitCount}.${gitCommitId}"
+    riruVersionCode = gitCommitCount
+
+    outDir = file("out")
+
+    riruPath  = "/data/riru"
+}
+
+def getProject(String name) {
+    return project(name)
 }
 
 task clean(type: Delete) {
-    delete rootProject.buildDir, outDir
+    delete buildDir, outDir
 }
 
-def aarVersion = "${riruApiVersion}.0.0"
-def aarDir = "out/aar/dev/rikka/ndk/riru/${aarVersion}"
+["Release", "Debug"].forEach { variant ->
+    def flashDir = file("$outDir/riru-${riruVersionName}-${variant}")
 
-task generateLibraryAar(type: Zip) {
-    copy {
-        from 'riru/src/main/cpp/include_riru/riru.h'
-        into 'template/aar/riru.aar/prefab/modules/riru/include'
+    task("prepareUpdateFiles${variant}") {
+        dependsOn("clean")
+        dependsOn("rirud:assemble$variant")
+        dependsOn("riru:assemble$variant")
+
+        doLast {
+            def templatePath = "template/update_package"
+            copy {
+                into flashDir
+                from(templatePath) {
+                    exclude 'zip/update.sh', 'zip/files/rirud_launcher.rc'
+                }
+                from(templatePath) {
+                    include 'zip/update.sh', 'zip/files/rirud_launcher.rc'
+                    filter(ReplaceTokens.class, tokens: [
+                            "RIRU_PATH": riruPath.toString()
+                    ])
+                    filter(FixCrLfFilter.class,
+                            eol: FixCrLfFilter.CrLf.newInstance("lf"))
+                }
+                from(project("riru").buildDir.absolutePath + "/intermediates/stripped_native_libs/${variant.toLowerCase()}/out/lib") {
+                    into 'zip/files/lib'
+                }
+                from(project("rirud").buildDir.absolutePath + "/outputs/apk/${variant.toLowerCase()}/rirud.apk") {
+                    include 'rirud.apk'
+                    into 'zip/files/'
+                }
+            }
+        }
     }
 
-    from 'template/aar/riru.aar'
-    archiveName "riru-${aarVersion}.aar"
-    destinationDir file(aarDir)
-}
+    task("zip${variant}") {
+        dependsOn("prepareUpdateFiles${variant}")
+        doLast {
+            exec {
+                workingDir flashDir
+                commandLine "./flashable.sh"
+            }
+        }
+    }
 
-task signLibraryAar(type: Exec) {
-    commandLine "gpg",
-            "--armor",
-            "--detach-sign",
-            "--passphrase=${findProperty("signing.password")}",
-            "--batch",
-            "--yes",
-            "riru-${aarVersion}.aar"
-    workingDir aarDir
-}
-
-task generateLibraryPom(type: Copy) {
-    from 'template/aar/riru.pom'
-    into file(aarDir)
-    filter { line -> line.replaceAll('%%%VERSION%%%', "$aarVersion") }
-    filter(FixCrLfFilter.class,
-            eol: FixCrLfFilter.CrLf.newInstance("lf"))
-    rename { "riru-${aarVersion}.pom" }
-}
-
-task signLibraryPom(type: Exec) {
-    commandLine "gpg",
-            "--armor",
-            "--detach-sign",
-            "--passphrase=${findProperty("signing.password")}",
-            "--batch",
-            "--yes",
-            "riru-${aarVersion}.pom"
-    workingDir aarDir
-}
-
-task generateLibrarySourceJar(type: Zip) {
-    from 'template/aar/riru-sources.jar'
-    archiveName "riru-${aarVersion}-sources.jar"
-    destinationDir file(aarDir)
-}
-
-task signLibrarySourceJar(type: Exec) {
-    commandLine "gpg",
-            "--armor",
-            "--detach-sign",
-            "--passphrase=${findProperty("signing.password")}",
-            "--batch",
-            "--yes",
-            "riru-${aarVersion}-sources.jar"
-    workingDir aarDir
-}
-
-task generateLibraryJavaDocJar(type: Zip) {
-    from 'template/aar/riru-javadoc.jar'
-    archiveName "riru-${aarVersion}-javadoc.jar"
-    destinationDir file(aarDir)
-}
-
-task signLibraryJavaDocJar(type: Exec) {
-    commandLine "gpg",
-            "--armor",
-            "--detach-sign",
-            "--passphrase=${findProperty("signing.password")}",
-            "--batch",
-            "--yes",
-            "riru-${aarVersion}-javadoc.jar"
-    workingDir aarDir
-}
-
-task generateLibrary(type: GradleBuild) {
-    tasks = [':generateLibraryAar', ':generateLibraryPom', ':generateLibrarySourceJar', ':generateLibraryJavaDocJar',
-             ':signLibraryAar', ':signLibraryPom', ':signLibrarySourceJar', ':signLibraryJavaDocJar']
+    task("flash${variant}") {
+        dependsOn("prepareUpdateFiles${variant}")
+        doLast {
+            exec {
+                workingDir flashDir
+                commandLine "./flashable.sh", "-s"
+            }
+        }
+    }
 }

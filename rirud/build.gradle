@@ -2,20 +2,16 @@ plugins {
     id 'com.android.application'
 }
 
-def versionNameShort = "v${riruApiVersion}.${versionNameMinor}.${versionNamePatch}"
-def versionCode = gitCommitCount
-
-def apiVersion = rootProject.ext.riruApiVersion
-
 android {
-    compileSdkVersion rootProject.ext.targetSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
+    compileSdkVersion riruTargetSdkVersion
+    buildToolsVersion riruBuildToolsVersion
+
     defaultConfig {
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
-        buildConfigField "int", "RIRU_API_VERSION", "$apiVersion"
-        buildConfigField "int", "RIRU_VERSION_CODE", "$versionCode"
-        buildConfigField "String", "RIRU_VERSION_NAME", "\"$versionNameShort\""
+        minSdkVersion riruMinSdkVersion
+        targetSdkVersion riruTargetSdkVersion
+        buildConfigField "int", "RIRU_API_VERSION", "$riruApiVersion"
+        buildConfigField "int", "RIRU_VERSION_CODE", "$riruVersionCode"
+        buildConfigField "String", "RIRU_VERSION_NAME", "\"$riruVersionNameShort\""
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
@@ -36,7 +32,7 @@ android {
 
 dependencies {
     implementation 'dev.rikka.rikkax.io:little-endian-data-stream:1.0.2'
-    compileOnly project(':stub')
+    compileOnly getProject("stub")
 }
 
 android.applicationVariants.all { variant ->

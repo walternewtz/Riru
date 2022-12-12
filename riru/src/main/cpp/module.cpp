@@ -53,7 +53,7 @@ static void LoadModule(std::string_view id, std::string_view path, std::string_v
     auto riru = std::make_unique<Riru>(Riru{
             .riruApiVersion = riru::apiVersion,
             .unused = nullptr,
-            .riruModulePath = riru_module_path.data(),
+            .riruModulesPath = riru_module_path.data(),
             .allowUnload = allow_unload.get()
     });
 

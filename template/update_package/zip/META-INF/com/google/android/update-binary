@@ -8,11 +8,13 @@ INSTALLDIR=/tmp/INSTALLDIR
 rm -rf $INSTALLDIR
 mkdir -p $INSTALLDIR
 
-unzip -o "$ZIPFILE" -d $INSTALLDIR
+unzip -o "$ZIPFILE" "utils/*" "update.sh" -d $INSTALLDIR
 
 # Source helper script and mount the partitions
 . $INSTALLDIR/utils/utils.sh
 . $INSTALLDIR/utils/mount_utils.sh
+
+api_level_arch_detect
 
 mount_partitions
 
@@ -21,6 +23,10 @@ mount_partitions
 
 # Clean up
 rm -rf $INSTALLDIR
+if [ $SEPOLICY_INJECT_ADDED ]; then
+    rm /data/local/tmp/sepolicy-inject
+fi
+
 umount_all
 
 exit 0

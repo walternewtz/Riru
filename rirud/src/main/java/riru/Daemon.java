@@ -160,9 +160,9 @@ public class Daemon implements IBinder.DeathRecipient {
     public static void main(String[] args) {
         DaemonUtils.init(args);
         DaemonUtils.writeStatus(R.string.app_process);
-        String riruTmpfsPath = DaemonUtils.getRiruTmpfsPath();
+        String riruModulesPath = DaemonUtils.getRiruModulesPath();
 
-        Log.i(TAG, "Riru path is " + riruTmpfsPath);
+        Log.i(TAG, "Riru path is " + riruModulesPath);
         Log.i(TAG, "Original native bridge is " + DaemonUtils.getOriginalNativeBridge());
         Log.i(TAG, "Dev random is " + DaemonUtils.getDevRandom());
 
