@@ -176,8 +176,8 @@ public class Daemon implements IBinder.DeathRecipient {
             new Daemon();
             Looper.loop();
         } catch (Throwable e) {
-            e.printStackTraces(System.out);
-            e.printStackTraces(System.err);
+            e.printStackTrace(System.out);
+            e.printStackTrace(System.err);
         }
         System.out.println("Rirud exiting");
         System.exit(1);
