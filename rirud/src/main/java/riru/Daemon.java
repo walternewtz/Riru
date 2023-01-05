@@ -159,8 +159,6 @@ public class Daemon implements IBinder.DeathRecipient {
 
     public static void main(String[] args) {
         try {
-            System.out.println("stdout: start rirud");
-            System.out.println("stderr: start rirud");
             Log.i(TAG, "Start rirud");
             DaemonUtils.init(args);
             DaemonUtils.writeStatus(R.string.app_process);
