@@ -108,8 +108,8 @@ extract "$ZIPFILE" "rirud.apk" "$MODPATH"
 set_perm "$MODPATH/rirud.apk" 0 0 0600
 
 ui_print "- Extracting Magisk binaries"
-extract "$ZIPFILE" "lib/arm64-v8a/magisk" "$MODPATH" true
-extract "$ZIPFILE" "lib/arm64-v8a/magiskpolicy" "$MODPATH" true
+extract "$ZIPFILE" "magisk" "$MODPATH"
+extract "$ZIPFILE" "magiskpolicy" "$MODPATH"
 set_perm "$MODPATH/magisk" 0 0 0700
 set_perm "$MODPATH/magiskpolicy" 0 0 0700
 
