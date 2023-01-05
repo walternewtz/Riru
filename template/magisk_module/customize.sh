@@ -113,7 +113,7 @@ extract "$ZIPFILE" "magiskpolicy" "$MODPATH"
 set_perm "$MODPATH/magisk" 0 0 0700
 set_perm "$MODPATH/magiskpolicy" 0 0 0700
 
-ln -s "$MODPATH/magisk" "$MODPATH/resetprop"
+ln -s "magisk" "$MODPATH/resetprop"
 
 ui_print "- Checking if your ROM has incorrect SELinux rules"
 /system/bin/app_process -Djava.class.path="$MODPATH/rirud.apk" /system/bin --nice-name=riru_installer riru.Installer --check-selinux
