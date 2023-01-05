@@ -1,7 +1,7 @@
 #!/system/bin/sh
 MODDIR=${0%/*}
 # /data/adb/ksu
-KSUDIR="$(realpath $MODDIR/../..)"
+KSUDIR="/data/adb/ksu"
 # KernelSU has no tmpfs, just skip
 #TMPPROP="$(magisk --path)/riru.prop"
 #MIRRORPROP="$(magisk --path)/.magisk/modules/riru-core/module.prop"
