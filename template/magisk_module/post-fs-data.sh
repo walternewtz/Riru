@@ -1,6 +1,6 @@
 #!/system/bin/sh
 MODDIR=${0%/*}
-# /data/adb/ksu
+# KernelSU internal directory
 KSUDIR="/data/adb/ksu"
 # KernelSU has no tmpfs, just skip
 #TMPPROP="$(magisk --path)/riru.prop"
@@ -20,13 +20,20 @@ fi
 ./magiskpolicy --live --apply "$MODDIR/sepolicy.rule"
 
 sed -Ei 's/^description=(\[.*][[:space:]]*)?/description=[ ⛔ app_process fails to run. ] /g' "$MODPROP"
-cd "$MODDIR" || exit
+cd "$MODDIR" || exit 1
 #flock "module.prop"
 #mount --bind "$TMPPROP" "$MODDIR/module.prop"
+
+# KernelSU does not migrate cgroup so our background process will be killed by init when our parent process exits
+# Let us escape the cgroup, hope this would work...
+echo $$ >> /acct/cgroup.procs
+echo $$ >> /sys/fs/cgroup/cgroup.procs
+
+# Export our own resetprop tool to rirud
 export PATH="$PATH:$MODDIR"
 # Rirud must be started before ro.dalvik.vm.native.bridge being reset
-unshare -m sh -c "/system/bin/app_process -Djava.class.path=rirud.apk /system/bin --nice-name=rirud riru.Daemon 25206 $KSUDIR $(getprop ro.dalvik.vm.native.bridge)&"
+unshare -m sh -c "nohup /system/bin/app_process -Djava.class.path=rirud.apk /system/bin --nice-name=rirud riru.Daemon 25206 $KSUDIR $(getprop ro.dalvik.vm.native.bridge) 2>&1 &"
 #umount "$MODDIR/module.prop"
 
 # post-fs-data phase, REMOVING THE -n FLAG MAY CAUSE DEADLOCK!
-./resetprop -n --file "$MODDIR/system.prop"
+#./resetprop -n --file "$MODDIR/system.prop"
