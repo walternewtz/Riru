@@ -24,11 +24,6 @@ cd "$MODDIR" || exit 1
 #flock "module.prop"
 #mount --bind "$TMPPROP" "$MODDIR/module.prop"
 
-# KernelSU does not migrate cgroup so our background process will be killed by init when our parent process exits
-# Let us escape the cgroup, hope this would work...
-echo $$ >> /acct/cgroup.procs
-echo $$ >> /sys/fs/cgroup/cgroup.procs
-
 # Export our own resetprop tool to rirud
 export PATH="$PATH:$MODDIR"
 # Rirud must be started before ro.dalvik.vm.native.bridge being reset
