@@ -16,6 +16,8 @@ fi
 
 ui_print "- Installing Riru $RIRU_VERSION_NAME (Riru API $RIRU_API)"
 
+[ "$KSU" != "true" ] && abort "! Only supports KernelSU, please use official Riru instead"
+
 # check Magisk
 ui_print "- Magisk version: $MAGISK_VER ($MAGISK_VER_CODE)"
 
