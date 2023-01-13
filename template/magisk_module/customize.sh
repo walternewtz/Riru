@@ -30,7 +30,7 @@ else
 fi
 
 # check architecture, kernelsu only supports arm64
-if [ "$ARCH" != "arm64" ]; then
+if [ "$ARCH" != "arm64" ] && [ "$ARCH" != "x64" ]; then
   abort "! Unsupported platform: $ARCH"
 else
   ui_print "- Device platform: $ARCH"
@@ -109,9 +109,18 @@ ui_print "- Extracting rirud"
 extract "$ZIPFILE" "rirud.apk" "$MODPATH"
 set_perm "$MODPATH/rirud.apk" 0 0 0600
 
-ui_print "- Extracting Magisk binaries"
-extract "$ZIPFILE" "magisk" "$MODPATH"
-extract "$ZIPFILE" "magiskpolicy" "$MODPATH"
+if [ "$ARCH" = "x64" ]; then
+  ui_print "- Extracting x64 Magisk binaries"
+  extract "$ZIPFILE" "magisk_x64" "$MODPATH"
+  extract "$ZIPFILE" "magiskpolicy_x64" "$MODPATH"
+  mv "$MODPATH/magisk_x64" "$MODPATH/magisk"
+  mv "$MODPATH/magiskpolicy_x64" "$MODPATH/magiskpolicy"
+else
+  ui_print "- Extracting arm64 Magisk binaries"
+  extract "$ZIPFILE" "magisk" "$MODPATH"
+  extract "$ZIPFILE" "magiskpolicy" "$MODPATH"
+fi
+
 set_perm "$MODPATH/magisk" 0 0 0700
 set_perm "$MODPATH/magiskpolicy" 0 0 0700
 
