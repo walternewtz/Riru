@@ -84,9 +84,6 @@ public class Daemon implements IBinder.DeathRecipient {
 
     private void onRiruLoad() {
         allowRestart = true;
-        Log.i(TAG, "Riru loaded, reset native bridge to " + DaemonUtils.getOriginalNativeBridge() + "...");
-        DaemonUtils.resetNativeBridgeProp(DaemonUtils.getOriginalNativeBridge());
-
         Log.i(TAG, "Riru loaded, stop rirud socket...");
         serverThread.stopServer();
 
@@ -129,11 +126,9 @@ public class Daemon implements IBinder.DeathRecipient {
     public static void main(String[] args) {
         DaemonUtils.init(args);
         DaemonUtils.writeStatus(R.string.app_process);
-        int magiskVersionCode = DaemonUtils.getMagiskVersionCode();
         String magiskTmpfsPath = DaemonUtils.getMagiskTmpfsPath();
 
-        Log.i(TAG, "Magisk version is " + magiskVersionCode);
-        Log.i(TAG, "Magisk tmpfs path is " + magiskTmpfsPath);
+        Log.i(TAG, "Tmpfs path is " + magiskTmpfsPath);
         Log.i(TAG, "Dev random is " + DaemonUtils.getDevRandom());
 
         Looper.prepare();

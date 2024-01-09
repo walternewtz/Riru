@@ -44,9 +44,7 @@ import java.util.concurrent.FutureTask;
 public class DaemonUtils {
 
     private static Boolean has32Bit = null, has64Bit = null;
-    private static String originalNativeBridge;
     private static String devRandom;
-    private static int magiskVersionCode = -1;
     private static String magiskTmpfsPath;
 
     public static Resources res;
@@ -69,13 +67,7 @@ public class DaemonUtils {
     private static final Set<Integer> zygotePid = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     public static void init(String[] args) {
-        magiskVersionCode = Integer.parseInt(args[0]);
-        magiskTmpfsPath = args[1];
-        if (args.length > 2) {
-            originalNativeBridge = args[2];
-        } else {
-            originalNativeBridge = "0";
-        }
+        magiskTmpfsPath = args[0];
         try {
             isSELinuxEnforcing = hasSELinux() && SELinux.isSELinuxEnabled() && SELinux.isSELinuxEnforced();
         } catch (Throwable e) {
@@ -103,7 +95,7 @@ public class DaemonUtils {
             service.submit(modules);
         }
 
-        File magiskDir = new File(DaemonUtils.getMagiskTmpfsPath(), ".magisk/modules/riru-core");
+        File magiskDir = new File("/data/adb/modules/riru-core");
 
         if (has64Bit()) {
             fileContext &= checkOrResetContextForChildren(new File(magiskDir, "lib64"));
@@ -250,14 +242,6 @@ public class DaemonUtils {
         return has64Bit;
     }
 
-    public static String getOriginalNativeBridge() {
-        return originalNativeBridge;
-    }
-
-    public static void resetNativeBridgeProp(String value) {
-        resetProperty("ro.dalvik.vm.native.bridge", value);
-    }
-
     public static void resetProperty(String key, String value) {
         exec("resetprop", key, value);
     }
@@ -332,54 +316,8 @@ public class DaemonUtils {
         }
     }
 
-
-    public static int getMagiskVersionCode() {
-        if (magiskVersionCode != -1) {
-            return magiskVersionCode;
-        }
-
-        try {
-            ProcessBuilder ps = new ProcessBuilder("magisk", "-V");
-            ps.redirectErrorStream(true);
-            Process pr = ps.start();
-
-            BufferedReader in = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-            String line = in.readLine();
-            Log.i(TAG, "Exec magisk -V: " + line);
-            magiskVersionCode = Integer.parseInt(line);
-            pr.waitFor();
-            in.close();
-            return magiskVersionCode;
-        } catch (Throwable e) {
-            Log.w(TAG, "Exec magisk -V", e);
-            return -1;
-        }
-    }
-
     public static String getMagiskTmpfsPath() {
-        if (magiskTmpfsPath != null) {
-            return magiskTmpfsPath;
-        }
-
-        if (getMagiskVersionCode() < 21000) {
-            return "/sbin";
-        }
-
-        try {
-            ProcessBuilder ps = new ProcessBuilder("magisk", "--path");
-            ps.redirectErrorStream(true);
-            Process pr = ps.start();
-
-            BufferedReader in = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-            magiskTmpfsPath = in.readLine();
-            Log.i(TAG, "Exec magisk --path: " + magiskTmpfsPath);
-            pr.waitFor();
-            in.close();
-            return magiskTmpfsPath;
-        } catch (Throwable e) {
-            Log.w(TAG, "Exec magisk --path", e);
-            return "";
-        }
+        return magiskTmpfsPath;
     }
 
     public static boolean hasSELinux() {
@@ -541,7 +479,7 @@ public class DaemonUtils {
         Map<String, List<Pair<String, String>>> m = new ConcurrentHashMap<>();
 
         String riruLibPath = "riru/" + (is64 ? "lib64" : "lib");
-        File[] magiskDirs = new File(DaemonUtils.getMagiskTmpfsPath(), ".magisk/modules").listFiles();
+        File[] magiskDirs = new File("/data/adb/modules").listFiles();
         if (magiskDirs == null) {
             return Collections.emptyMap();
         }

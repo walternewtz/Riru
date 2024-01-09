@@ -26,7 +26,7 @@ namespace magisk {
     }
 
     std::string GetPathForSelf(const char *name) {
-        return GetPath() + "/.magisk/modules/riru-core/"s + name;
+        return "/data/adb/modules/riru-core/"s + name;
     }
 
     std::string GetPathForSelfLib(const char *name) {

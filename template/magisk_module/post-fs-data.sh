@@ -16,14 +16,16 @@ fi
 sed -Ei 's/^description=(\[.*][[:space:]]*)?/description=[ ⛔ app_process fails to run. ] /g' "$MIRRORPROP"
 cd "$MODDIR" || exit
 flock "module.prop"
-unshare -m sh -c "/system/bin/app_process -Djava.class.path=rirud.apk /system/bin --nice-name=rirud riru.Daemon $(magisk -V) $TMP_PATH $(getprop ro.dalvik.vm.native.bridge)&"
+unshare -m sh -c "/system/bin/app_process -Djava.class.path=rirud.apk /system/bin --nice-name=rirud riru.Daemon $TMP_PATH &"
 
 rm -rf "$TMP_PATH/riru"
 mkdir "$TMP_PATH/riru"
+mount -t tmpfs riru -o mode=0755 "$TMP_PATH/riru"
 for libname in riru riruhide riruloader; do
   [ -f "$MODDIR/lib/lib${libname}.so" ] && cp -af "$MODDIR/lib/lib${libname}.so" "$TMP_PATH/riru/${libname}32"
   [ -f "$MODDIR/lib64/lib${libname}.so" ] && cp -af "$MODDIR/lib64/lib${libname}.so" "$TMP_PATH/riru/${libname}64"
 done
 chmod -R 755 "$TMP_PATH/riru"
+mount -o ro,remount "$TMP_PATH/riru"
   
 "$MODDIR/riruloader" "$TMP_PATH" &

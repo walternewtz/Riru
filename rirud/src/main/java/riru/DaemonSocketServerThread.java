@@ -59,12 +59,6 @@ public class DaemonSocketServerThread extends Thread {
 
     private final Set<Integer> zygotePid = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
-    private void handleReadOriginalNativeBridge(LittleEndianDataOutputStream out) throws IOException {
-        String s = DaemonUtils.getOriginalNativeBridge();
-        out.writeInt(s.length());
-        out.write(s.getBytes());
-    }
-
     private void handleMagiskTmpfsPath(LittleEndianDataOutputStream out) throws IOException {
         String s = DaemonUtils.getMagiskTmpfsPath();
         out.writeInt(s.length());
@@ -271,11 +265,6 @@ public class DaemonSocketServerThread extends Thread {
         Log.i(TAG, "Action " + action);
 
         switch (action) {
-            case ACTION_READ_NATIVE_BRIDGE: {
-                Log.i(TAG, "Action: read original native bridge");
-                handleReadOriginalNativeBridge(out);
-                break;
-            }
             case ACTION_READ_MAGISK_TMPFS_PATH: {
                 Log.i(TAG, "Action: read Magisk tmpfs path");
                 handleMagiskTmpfsPath(out);
