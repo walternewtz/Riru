@@ -57,7 +57,6 @@ MAGISK_CURRENT_MODULE_PATH=/data/adb/modules/riru-core
 extract "$ZIPFILE" 'module.prop' "$MODPATH"
 cp "$MODPATH/module.prop" "$MODPATH/module.prop.bk"
 extract "$ZIPFILE" 'post-fs-data.sh' "$MODPATH"
-extract "$ZIPFILE" 'service.sh' "$MODPATH"
 extract "$ZIPFILE" 'util_functions.sh' "$MODPATH"
 extract "$ZIPFILE" 'sepolicy.rule' "$MODPATH"
 extract "$ZIPFILE" 'uninstall.sh' "$MODPATH"

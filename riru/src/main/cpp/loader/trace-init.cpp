@@ -90,11 +90,11 @@ int trace_init_main(int argc, char *argv[]) {
                     string rirulib = string(tmp);
                     do {
                         if (program == "/system/bin/app_process64") {
-                            tracer += "/riru/riruloader64";
-                            rirulib += "/riru/riru64";
+                            tracer += "/riruloader64";
+                            rirulib += "/riru64";
                         } else if (program == "/system/bin/app_process32") {
-                            tracer += "/riru/riruloader32";
-                            rirulib += "/riru/riru32";
+                            tracer += "/riruloader32";
+                            rirulib += "/riru32";
                         }
                         if (tracer != tmp) {
                             kill(pid, SIGSTOP);
