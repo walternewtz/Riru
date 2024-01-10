@@ -39,7 +39,7 @@ static void LoadModule(std::string_view id, std::string_view path, std::string_v
         return;
     }
 
-    int fd = open(path.data(), O_RDONLY | O_CLOEXEC), memfd = syscall(__NR_memfd_create, "jit-cache", MFD_CLOEXEC);
+    int fd = open(path.data(), O_RDONLY | O_CLOEXEC), memfd = syscall(__NR_memfd_create, "jit-riru-cache", MFD_CLOEXEC);
 
     if (memfd >= 0) {
         sendfile(memfd, fd, nullptr, INT_MAX);
@@ -52,7 +52,7 @@ static void LoadModule(std::string_view id, std::string_view path, std::string_v
         .library_fd = fd,
     };
 
-    auto *handle = android_dlopen_ext("/jit-cache", RTLD_LAZY, &info);
+    auto *handle = android_dlopen_ext("/jit-riru-cache", RTLD_LAZY, &info);
     close(fd);
 
     if (!handle) {

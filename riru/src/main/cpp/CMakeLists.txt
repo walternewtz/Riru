@@ -80,10 +80,6 @@ add_library(riru SHARED
 target_include_directories(riru PRIVATE ${CMAKE_SOURCE_DIR})
 target_link_libraries(riru log utils cxx::cxx proc-maps-parser::proc-maps-parser)
 
-add_library(riruhide SHARED hide/hide.cpp)
-target_include_directories(riruhide PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(riruhide log utils cxx::cxx proc-maps-parser::proc-maps-parser)
-
 if ("${ANDROID_ABI}" STREQUAL "x86" OR "${ANDROID_ABI}" STREQUAL "x86_64")
     add_definitions(-DHAS_NATIVE_BRIDGE)
 endif ()
@@ -94,8 +90,6 @@ target_link_libraries(libriruloader.so log utils cxx::cxx)
 if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_custom_command(TARGET riru POST_BUILD
             COMMAND ${CMAKE_STRIP} --strip-all --remove-section=.comment "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libriru.so")
-    add_custom_command(TARGET riruhide POST_BUILD
-            COMMAND ${CMAKE_STRIP} --strip-all --remove-section=.comment "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libriruhide.so")
     add_custom_command(TARGET libriruloader.so POST_BUILD
             COMMAND ${CMAKE_STRIP} --strip-all --remove-section=.comment "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libriruloader.so")
 endif ()

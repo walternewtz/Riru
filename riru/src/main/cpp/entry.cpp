@@ -130,7 +130,6 @@ init(void *handle) {
     }
 
     magisk::SetPath(magisk_path.data());
-    hide::PrepareMapsHideLibrary();
     jni::InstallHooks();
     modules::Load(rirud);
 }

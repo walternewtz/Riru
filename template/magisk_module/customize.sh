@@ -72,25 +72,21 @@ mkdir "$MODPATH/lib64"
 if [ "$ARCH" = "x86" ] || [ "$ARCH" = "x64" ]; then
   ui_print "- Extracting x86 libraries"
   extract "$ZIPFILE" 'lib/x86/libriru.so' "$MODPATH/lib" true
-  extract "$ZIPFILE" 'lib/x86/libriruhide.so' "$MODPATH/lib" true
   extract "$ZIPFILE" 'lib/x86/libriruloader.so' "$MODPATH/lib" true
 
   if [ "$IS64BIT" = true ]; then
     ui_print "- Extracting x64 libraries"
     extract "$ZIPFILE" 'lib/x86_64/libriru.so' "$MODPATH/lib64" true
-    extract "$ZIPFILE" 'lib/x86_64/libriruhide.so' "$MODPATH/lib64" true
     extract "$ZIPFILE" 'lib/x86_64/libriruloader.so' "$MODPATH/lib64" true
   fi
 else
   ui_print "- Extracting arm libraries"
   extract "$ZIPFILE" 'lib/armeabi-v7a/libriru.so' "$MODPATH/lib" true
-  extract "$ZIPFILE" 'lib/armeabi-v7a/libriruhide.so' "$MODPATH/lib" true
   extract "$ZIPFILE" 'lib/armeabi-v7a/libriruloader.so' "$MODPATH/lib" true
 
   if [ "$IS64BIT" = true ]; then
     ui_print "- Extracting arm64 libraries"
     extract "$ZIPFILE" 'lib/arm64-v8a/libriru.so' "$MODPATH/lib64" true
-    extract "$ZIPFILE" 'lib/arm64-v8a/libriruhide.so' "$MODPATH/lib64" true
     extract "$ZIPFILE" 'lib/arm64-v8a/libriruloader.so' "$MODPATH/lib64" true
   fi
 fi

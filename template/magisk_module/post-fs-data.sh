@@ -21,7 +21,7 @@ cd "$MODDIR" || exit
 flock "module.prop"
 unshare -m sh -c "/system/bin/app_process -Djava.class.path=rirud.apk /system/bin --nice-name=rirud riru.Daemon $TMP_PATH &"
 
-for libname in riru riruhide riruloader; do
+for libname in riru riruloader; do
   [ -f "$MODDIR/lib/lib${libname}.so" ] && cp -af "$MODDIR/lib/lib${libname}.so" "$TMP_PATH/${libname}32"
   [ -f "$MODDIR/lib64/lib${libname}.so" ] && cp -af "$MODDIR/lib64/lib${libname}.so" "$TMP_PATH/${libname}64"
 done
