@@ -84,7 +84,7 @@ public class DaemonSocketServerThread extends Thread {
 
         DaemonUtils.recordLoadedProcess(credentials.getPid());
 
-        File parent = new File("/dev/riru" + (is64Bit ? "64" : "") + "_" + DaemonUtils.getDevRandom());
+        File parent = new File(DaemonUtils.getMagiskTmpfsPath() + "/info_" + (is64Bit ? "64" : "32"));
         File modules = new File(parent, "modules");
 
         writeToFile(parent, "api", Integer.toString(BuildConfig.RIRU_API_VERSION));

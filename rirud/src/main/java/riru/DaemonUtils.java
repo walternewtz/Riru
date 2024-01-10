@@ -44,7 +44,6 @@ import java.util.concurrent.FutureTask;
 public class DaemonUtils {
 
     private static Boolean has32Bit = null, has64Bit = null;
-    private static String devRandom;
     private static String magiskTmpfsPath;
 
     public static Resources res;
@@ -292,25 +291,20 @@ public class DaemonUtils {
     }
 
     public static void deleteDevFolder() {
-        String devRandom = getDevRandom();
-        if (devRandom == null) {
-            return;
-        }
-
         File file;
 
-        file = new File("/dev/riru_" + devRandom);
+        file = new File(DaemonUtils.getMagiskTmpfsPath() + "/info_32");
         Log.i(TAG, "Attempt to delete " + file + "...");
         if (!deleteDir(file)) {
-            file.renameTo(new File("/dev/riru_" + devRandom + "_" + System.currentTimeMillis()));
+            file.renameTo(new File(DaemonUtils.getMagiskTmpfsPath() + "/info_32" + "_" + System.currentTimeMillis()));
         } else {
             Log.i(TAG, "Deleted " + file);
         }
 
-        file = new File("/dev/riru64_" + devRandom);
+        file = new File(DaemonUtils.getMagiskTmpfsPath() + "/info_64");
         Log.i(TAG, "Attempt to delete " + file + "...");
         if (!deleteDir(file)) {
-            file.renameTo(new File("/dev/riru_" + devRandom + "_" + System.currentTimeMillis()));
+            file.renameTo(new File(DaemonUtils.getMagiskTmpfsPath() + "/info_64" + "_" + System.currentTimeMillis()));
         } else {
             Log.i(TAG, "Deleted " + file + ".");
         }
@@ -379,51 +373,6 @@ public class DaemonUtils {
             Log.w(TAG, Log.getStackTraceString(e));
         }
         return true;
-    }
-
-    public static String getDevRandom() {
-        if (devRandom != null) {
-            return devRandom;
-        }
-
-        File dir = new File("/data/adb/riru");
-        if (!dir.exists()) {
-            //noinspection ResultOfMethodCallIgnored
-            dir.mkdir();
-        }
-
-        File file = new File(dir, "dev_random");
-
-        if (file.exists()) {
-            try (FileInputStream in = new FileInputStream(file)) {
-                byte[] buffer = new byte[8192];
-                if (in.read(buffer, 0, 8192) > 0) {
-                    devRandom = new String(buffer).trim();
-                    Log.i(TAG, "Read dev random " + devRandom);
-                    return devRandom;
-                }
-            } catch (IOException e) {
-                Log.w(TAG, "Read dev random", e);
-            }
-        }
-
-        String charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        SecureRandom rnd = new SecureRandom();
-        StringBuilder sb = new StringBuilder(7);
-        for (int i = 0; i < 7; i++) {
-            sb.append(charset.charAt(rnd.nextInt(charset.length())));
-        }
-
-        devRandom = sb.toString();
-        Log.i(TAG, "Generated dev random " + devRandom);
-
-        try (FileOutputStream out = new FileOutputStream(file)) {
-            out.write(devRandom.getBytes());
-        } catch (IOException e) {
-            Log.w(TAG, "Write dev random", e);
-        }
-
-        return devRandom;
     }
 
     private static boolean checkAndResetContextForFile(File file) {

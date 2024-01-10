@@ -48,7 +48,7 @@ public class Daemon implements IBinder.DeathRecipient {
 
         Log.i(TAG, "Zygote is probably dead, restart rirud socket...");
 
-        Log.i(TAG, "Zygote is probably dead, delete existing /dev/riru folders...");
+        Log.i(TAG, "Zygote is probably dead, delete existing folders...");
         DaemonUtils.deleteDevFolder();
 
         synchronized (serverThread) {
@@ -129,7 +129,6 @@ public class Daemon implements IBinder.DeathRecipient {
         String magiskTmpfsPath = DaemonUtils.getMagiskTmpfsPath();
 
         Log.i(TAG, "Tmpfs path is " + magiskTmpfsPath);
-        Log.i(TAG, "Dev random is " + DaemonUtils.getDevRandom());
 
         Looper.prepare();
         new Daemon();
