@@ -2,8 +2,11 @@
 #include <unistd.h>
 #include <dlfcn.h>
 #include <sys/mman.h>
+#include <sys/syscall.h>
+#include <sys/sendfile.h>
 #include <android_prop.h>
 #include <memory>
+#include <android/dlext.h>
 #include "buff_string.h"
 #include <rirud.h>
 #include "module.h"
@@ -36,7 +39,22 @@ static void LoadModule(std::string_view id, std::string_view path, std::string_v
         return;
     }
 
-    auto *handle = DlopenExt(path.data(), 0);
+    int fd = open(path.data(), O_RDONLY | O_CLOEXEC), memfd = syscall(__NR_memfd_create, "jit-cache", MFD_CLOEXEC);
+
+    if (memfd >= 0) {
+        sendfile(memfd, fd, nullptr, INT_MAX);
+        close(fd);
+        fd = memfd;
+    }
+
+    android_dlextinfo info {
+        .flags = ANDROID_DLEXT_USE_LIBRARY_FD,
+        .library_fd = fd,
+    };
+
+    auto *handle = android_dlopen_ext("/jit-cache", RTLD_LAZY, &info);
+    close(fd);
+
     if (!handle) {
         LOGE("dlopen %s failed: %s", path.data(), dlerror());
         return;
